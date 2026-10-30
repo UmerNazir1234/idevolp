@@ -1,0 +1,6 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+/* Background image is defined ONCE here. Replace /public/images/background/background.webp */
+:root { --site-bg: url("/images/background/background.webp"); }
+.bg-site { background-image: var(--site-bg); background-size: cover; background-position: center; }
+body { background: #7a7a7a; color: #fff; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
