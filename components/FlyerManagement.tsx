@@ -34,7 +34,7 @@ const defaultButton: FlyerButtonSettings = {
 
 function createFlyer(link = "/"): Flyer {
   return {
-    id: `flyer-${Date.now()}`,
+    id: `flyer-${crypto.randomUUID()}`,
     image: "",
     title: "",
     description: "",
@@ -96,9 +96,9 @@ export function FlyerCard({ flyer, pageLabel }: { flyer: Flyer; pageLabel: strin
 export function FlyerGrid({ flyers, pageLabel }: { flyers: Flyer[]; pageLabel: string }) {
   if (!flyers.length) return null;
   return (
-    <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2 sm:gap-4">
+    <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
       {flyers.map((flyer) => (
-        <div key={flyer.id} className={flyers.length === 1 ? "mx-auto w-full max-w-md" : "min-w-0"}>
+        <div key={flyer.id} className={flyers.length === 1 ? "mx-auto w-full max-w-2xl md:col-span-2" : "min-w-0"}>
           <FlyerCard flyer={flyer} pageLabel={pageLabel} />
         </div>
       ))}
@@ -245,7 +245,7 @@ export function FlyerForm({
         {error && <p role="alert" className="text-sm font-semibold text-red-700">{error}</p>}
         <div className="flex flex-wrap gap-3">
           <button type="submit" className="rounded-full bg-brand px-5 py-2.5 text-sm font-bold uppercase text-white hover:bg-brand-dark">{isEditing ? "Save flyer" : "Add flyer"}</button>
-          {isEditing && <button type="button" onClick={onCancel} className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-bold">Cancel</button>}
+          <button type="button" onClick={onCancel} className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-bold">Cancel</button>
         </div>
       </div>
 
@@ -279,67 +279,84 @@ export function FlyerSection({ pageId, pageLabel, fullScreen = false }: { pageId
   const [flyers, setFlyers] = useState<Flyer[]>([]);
 
   useEffect(() => {
-    const refresh = () => setFlyers(getFlyersForPage(pageId));
+    const refresh = () => {
+      const hasChildren = getNavigationItems().some((item) => item.parentId === pageId);
+      setFlyers(hasChildren ? [] : getFlyersForPage(pageId));
+    };
     refresh();
     return subscribeToDemoChanges(refresh);
   }, [pageId]);
 
   if (!flyers.length) return null;
   return (
-    <section className={`bg-site relative isolate flex items-center px-4 sm:px-8 ${fullScreen ? "min-h-[calc(100vh-5rem)] py-8" : "py-4 sm:py-6"}`} aria-label={`${pageLabel} flyers`}>
-      <div className="absolute inset-0 -z-10 bg-black/75" />
-      <div className="mx-auto max-w-4xl">
-        <FlyerGrid flyers={flyers} pageLabel={pageLabel} />
-      </div>
+    <section className={fullScreen ? "min-h-[40vh]" : ""} aria-label={`${pageLabel} flyers`}>
+      <FlyerGrid flyers={flyers} pageLabel={pageLabel} />
     </section>
   );
 }
 
-function navigationLocationLabel(item: NavigationItem, items: NavigationItem[]) {
-  const ancestors: string[] = [item.label];
-  let parentId = item.parentId;
-  while (parentId) {
-    const parent = items.find((entry) => entry.id === parentId);
-    if (!parent || ancestors.includes(parent.label)) break;
-    ancestors.unshift(parent.label);
-    parentId = parent.parentId;
-  }
-  return ancestors.join(" → ");
-}
-
 export function FlyerManager() {
   const [items, setItems] = useState<NavigationItem[]>(() => getNavigationItems());
-  const [pageId, setPageId] = useState(() => getNavigationItems()[0]?.id ?? "");
+  const parents = items.filter((item) => !item.parentId);
+  const [parentId, setParentId] = useState(() => {
+    const current = getNavigationItems();
+    return current.find((item) => !item.parentId && current.some((child) => child.parentId === item.id))?.id
+      ?? current.find((item) => !item.parentId)?.id
+      ?? "";
+  });
+  const children = items.filter((item) => item.parentId === parentId);
+  const [subMenuId, setSubMenuId] = useState("");
   const [flyers, setFlyers] = useState<Flyer[]>([]);
-  const [draft, setDraft] = useState<Flyer>(() => createFlyer(getNavigationItems()[0]?.href ?? "/"));
+  const [draft, setDraft] = useState<Flyer>(() => createFlyer("/"));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const { toast, showToast, dismissToast } = useToast();
-  const selectedPage = items.find((item) => item.id === pageId);
+  const selectedParent = items.find((item) => item.id === parentId);
+  const selectedSubMenu = children.find((item) => item.id === subMenuId);
+  const selectedPage = children.length ? selectedSubMenu : selectedParent;
+  const pageId = selectedPage?.id ?? "";
 
   useEffect(() => {
     const refresh = () => {
       const nextItems = getNavigationItems();
       setItems(nextItems);
-      setPageId((current) => nextItems.some((item) => item.id === current) ? current : nextItems[0]?.id ?? "");
+      setParentId((current) => nextItems.some((item) => item.id === current && !item.parentId)
+        ? current
+        : nextItems.find((item) => !item.parentId && nextItems.some((child) => child.parentId === item.id))?.id
+          ?? nextItems.find((item) => !item.parentId)?.id
+          ?? "");
     };
     return subscribeToDemoChanges(refresh);
   }, []);
+  useEffect(() => {
+    setSubMenuId((current) => children.some((item) => item.id === current) ? current : children[0]?.id ?? "");
+  }, [parentId, items]);
 
   useEffect(() => {
     if (!pageId) {
       setFlyers([]);
+      setShowForm(false);
+      setEditingId(null);
+      setError("");
       return;
     }
     setFlyers(getFlyersForPage(pageId));
     setDraft(createFlyer(getNavigationItems().find((item) => item.id === pageId)?.href ?? "/"));
     setEditingId(null);
+    setShowForm(false);
     setError("");
   }, [pageId]);
 
   function saveFlyer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    if (!pageId) {
+      setError(children.length
+        ? "Select a sub menu before saving a flyer."
+        : "Select a parent menu before saving a flyer.");
+      return;
+    }
     if (!draft.image) {
       setError("Choose an image before saving the flyer.");
       return;
@@ -361,7 +378,8 @@ export function FlyerManager() {
       setFlyers(nextFlyers);
       setDraft(createFlyer(selectedPage?.href ?? "/"));
       setEditingId(null);
-      showToast(wasEditing ? "Flyer updated." : "Flyer added.");
+      setShowForm(!wasEditing);
+      showToast(wasEditing ? "Flyer updated." : "Flyer added. Add another flyer or close the form.");
     } catch {
       const message = "The flyer could not be saved in this browser. Try a smaller image and save again.";
       setError(message);
@@ -369,9 +387,17 @@ export function FlyerManager() {
     }
   }
 
+  function startAddFlyer() {
+    setDraft(createFlyer(selectedPage?.href ?? "/"));
+    setEditingId(null);
+    setShowForm(true);
+    setError("");
+  }
+
   function editFlyer(flyer: Flyer) {
     setDraft(flyer);
     setEditingId(flyer.id);
+    setShowForm(true);
     setError("");
     showToast(`Editing "${flyer.title || "flyer"}". Save changes when finished.`, "info");
   }
@@ -390,41 +416,75 @@ export function FlyerManager() {
   }
 
   if (!items.length) {
-    return <p className="rounded-xl bg-white p-6 text-neutral-700">Add a navigation item before managing flyers.</p>;
+    return <p className="rounded-xl bg-white p-6 text-neutral-700">Add a parent menu in Navigation Management before managing flyers.</p>;
   }
 
   return (
     <div className="space-y-7">
       <ToastNotification toast={toast} onDismiss={dismissToast} />
       <section className="rounded-2xl bg-white p-5 text-neutral-900 shadow-xl sm:p-6">
-        <label htmlFor="flyer-page" className={labelClass}>Navigation/Menu location</label>
-        <select id="flyer-page" value={pageId} onChange={(event) => setPageId(event.target.value)} className={`${fieldClass} max-w-xl`}>
-          {items.map((item) => <option key={item.id} value={item.id}>{navigationLocationLabel(item, items)} — {item.href}</option>)}
-        </select>
-        <p className="mt-2 text-sm text-neutral-600">Choose a menu or submenu page. Flyers appear only on the selected page.</p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="flyer-parent-menu" className={labelClass}>Parent Menu</label>
+            <select id="flyer-parent-menu" value={parentId} onChange={(event) => { setParentId(event.target.value); setSubMenuId(""); }} className={fieldClass}>
+              {parents.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="flyer-sub-menu" className={labelClass}>Sub Menu</label>
+            <select id="flyer-sub-menu" value={subMenuId} onChange={(event) => setSubMenuId(event.target.value)} disabled={!selectedParent} className={fieldClass}>
+              {children.length
+                ? <><option value="" disabled>Select a Sub Menu</option>{children.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</>
+                : <option value="">None (Parent Menu Only)</option>}
+            </select>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-neutral-600">
+          {selectedParent && selectedPage
+            ? `Flyers saved here appear on ${subMenuId ? `${selectedParent.label} → ${selectedPage.label}` : `${selectedParent.label} only`}. There is no limit to how many flyers you can add.`
+            : selectedParent && children.length
+              ? `Select a sub menu under ${selectedParent.label} to manage its flyers. There is no limit to how many flyers you can add.`
+            : "Add a parent menu in Navigation Management, then come back to add flyers."}
+        </p>
       </section>
 
       {selectedPage && (
         <>
-          <div>
-            <h2 className="mb-4 font-serif text-2xl font-bold">Add a flyer for {selectedPage.label}</h2>
-              <FlyerForm key={draft.id} flyer={draft} pageLabel={selectedPage.label} navigationItems={items} onChange={setDraft} onSubmit={saveFlyer} onCancel={() => { setDraft(createFlyer(selectedPage.href)); setEditingId(null); setError(""); }} isEditing={Boolean(editingId)} error={error} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-serif text-2xl font-bold">Flyers for {selectedParent?.label}{subMenuId ? ` → ${selectedPage.label}` : " (Parent Menu Only)"}</h2>
+            <button type="button" onClick={startAddFlyer} className="rounded-full bg-brand px-5 py-2.5 text-sm font-bold uppercase text-white hover:bg-brand-dark">+ Add Flyer</button>
           </div>
+          {showForm && (
+            <div>
+              <h3 className="mb-4 font-serif text-xl font-bold">{editingId ? `Edit flyer for ${selectedPage.label}` : `Add a flyer to ${selectedPage.label}`}</h3>
+              <FlyerForm
+                key={draft.id}
+                flyer={draft}
+                pageLabel={selectedPage.label}
+                navigationItems={items}
+                onChange={setDraft}
+                onSubmit={saveFlyer}
+                onCancel={() => { setDraft(createFlyer(selectedPage.href)); setEditingId(null); setShowForm(false); setError(""); }}
+                isEditing={Boolean(editingId)}
+                error={error}
+              />
+            </div>
+          )}
           <section>
             <h2 className="mb-4 font-serif text-2xl font-bold">Saved flyers <span className="text-lg text-white/60">({flyers.length})</span></h2>
             {flyers.length ? (
-              <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2">
+              <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
                 {flyers.map((flyer) => (
                   <div key={flyer.id} className="space-y-3">
                     <FlyerCard flyer={flyer} pageLabel={selectedPage.label} />
                     <div className="flex gap-4">
                       <button type="button" onClick={() => editFlyer(flyer)} className="text-sm font-bold text-red-200 hover:underline">Edit</button>
-                      <button type="button" onClick={() => removeFlyer(flyer)} className="text-sm font-bold text-red-200 hover:underline">Remove</button>
+                      <button type="button" onClick={() => removeFlyer(flyer)} className="text-sm font-bold text-red-200 hover:underline">Delete</button>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : <p className="rounded-xl border border-white/15 bg-black/20 p-5 text-white/70">No flyers have been added to this page yet.</p>}
+            ) : <p className="rounded-xl border border-white/15 bg-black/20 p-5 text-white/70">No flyers have been added to this {subMenuId ? "sub menu" : "parent menu"} yet. Use + Add Flyer to create the first one.</p>}
           </section>
         </>
       )}

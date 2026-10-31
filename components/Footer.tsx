@@ -16,17 +16,23 @@ const programLabels = new Set(["Team League Sign-Up", "Individual League Sign-Up
 const h = "mb-5 font-serif text-lg font-bold text-white";
 const a = "text-white/70 transition hover:text-white hover:underline";
 
+function leafItems(item: NavigationItem, items: NavigationItem[]): NavigationItem[] {
+  const children = items.filter((candidate) => candidate.parentId === item.id);
+  return children.length ? children.flatMap((child) => leafItems(child, items)) : [item];
+}
+
 export default function Footer() {
   const [navigation, setNavigation] = useState<NavigationItem[]>(DEFAULT_NAVIGATION);
 
   useEffect(() => {
-    const refresh = () => setNavigation(getNavigationItems().filter((item) => item.enabled && !item.parentId));
+    const refresh = () => setNavigation(getNavigationItems().filter((item) => item.enabled));
     refresh();
     return subscribeToDemoChanges(refresh);
   }, []);
 
-  const programs = navigation.filter((item) => programLabels.has(item.label));
-  const quick = navigation.filter((item) => !programLabels.has(item.label));
+  const roots = navigation.filter((item) => !item.parentId);
+  const programs = roots.filter((item) => programLabels.has(item.label)).flatMap((item) => leafItems(item, navigation));
+  const quick = roots.filter((item) => !programLabels.has(item.label)).flatMap((item) => leafItems(item, navigation));
   const dayPass = navigation.find((item) => item.label.toLowerCase() === "day pass");
 
   return (

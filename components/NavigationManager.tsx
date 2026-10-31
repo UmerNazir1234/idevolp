@@ -137,7 +137,7 @@ export default function NavigationManager() {
       <section className="overflow-hidden rounded-2xl bg-white text-neutral-900 shadow-xl">
         <div className="border-b border-neutral-200 px-5 py-5 sm:px-6">
           <h2 className="font-serif text-2xl font-bold">Website navigation</h2>
-          <p className="mt-1 text-sm text-neutral-600">Use the arrows to change display order. Disabled links are hidden from visitors.</p>
+          <p className="mt-1 text-sm text-neutral-600">Add a parent menu, then add unlimited child menus under it. Use the arrows to change display order. Disabled links are hidden from visitors.</p>
         </div>
         {error && <p role="alert" className="border-b border-red-100 bg-red-50 px-5 py-3 text-sm text-red-800">{error}</p>}
         <ul className="divide-y divide-neutral-200">
@@ -146,7 +146,14 @@ export default function NavigationManager() {
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <span className="w-6 text-sm text-neutral-500">{index + 1}.</span>
                 <div className="min-w-0" style={{ paddingLeft: `${itemDepth(item, items) * 16}px` }}>
-                  <p className="truncate font-bold">{item.title}{items.some((child) => child.parentId === item.id) ? <span className="ml-2 text-xs font-medium text-brand">(has children)</span> : null}</p>
+                  <p className="truncate font-bold">
+                    {item.title}
+                    {item.parentId
+                      ? <span className="ml-2 text-xs font-medium text-neutral-500">(sub menu)</span>
+                      : items.some((child) => child.parentId === item.id)
+                        ? <span className="ml-2 text-xs font-medium text-brand">(parent · {items.filter((child) => child.parentId === item.id).length} children)</span>
+                        : <span className="ml-2 text-xs font-medium text-neutral-500">(parent)</span>}
+                  </p>
                   <p className="truncate text-sm text-neutral-500">{item.href}</p>
                 </div>
               </div>

@@ -77,7 +77,7 @@ export default function AdminPage() {
                   {tab === "flyers" && (
                     <>
                       <h1 className="font-serif text-4xl font-bold">Flyer Management</h1>
-                      <p className="mb-6 mt-2 text-white/70">Create and preview flyers assigned to any menu or submenu page.</p>
+                      <p className="mb-6 mt-2 text-white/70">Parents without child menus can have flyers directly. If a parent has child menus, select a child menu to manage its flyers.</p>
                       <FlyerManager />
                     </>
                   )}

@@ -21,6 +21,7 @@ export default function NavDropdown({
 }) {
   const children = [...item.children].sort((a, b) => a.order - b.order);
   const activeSubMenu = children.some((child) => active(child.href) || hasActiveDescendant(child, active));
+  const selected = active(item.href) || activeSubMenu;
   const [open, setOpen] = useState(activeSubMenu);
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -60,9 +61,6 @@ export default function NavDropdown({
   return (
     <div className={`group relative ${side ? "w-full" : ""}`} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onKeyDown={onKeyDown} onBlur={onBlur}>
       <div className="flex items-center">
-        <Link href={item.href} aria-current={active(item.href) ? "page" : undefined} className={`${className} ${active(item.href) ? "text-brand after:scale-x-100" : ""}`}>
-          {item.label}
-        </Link>
         <button
           ref={triggerRef}
           type="button"
@@ -70,9 +68,10 @@ export default function NavDropdown({
           aria-haspopup="true"
           aria-expanded={open}
           aria-controls={id}
-          onClick={() => setOpen((current) => !current)}
-          className="flex h-9 w-8 items-center justify-center rounded text-neutral-700 hover:bg-brand/10 hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+          onClick={() => setOpen(true)}
+          className={`${className} flex w-full items-center justify-between gap-2 text-left ${selected ? "text-brand after:scale-x-100" : ""}`}
         >
+          {item.label}
           <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" fill="none" /></svg>
         </button>
       </div>

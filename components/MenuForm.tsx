@@ -26,18 +26,6 @@ function routeFor(parentId: string, segment: string, items: MenuItem[]) {
   return `${parent?.href.replace(/\/+$/, "") ?? ""}/${segment}` || "/";
 }
 
-function hierarchyLabel(item: MenuItem, items: MenuItem[]) {
-  const labels = [item.title];
-  let parentId = item.parentId;
-  while (parentId) {
-    const parent = items.find((entry) => entry.id === parentId);
-    if (!parent || labels.includes(parent.title)) break;
-    labels.unshift(parent.title);
-    parentId = parent.parentId;
-  }
-  return labels.join(" → ");
-}
-
 export default function MenuForm({
   item,
   items,
@@ -55,7 +43,12 @@ export default function MenuForm({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const excludedParents = item ? descendantsOf(item.id, items) : new Set<string>();
-  const availableParents = items.filter((entry) => entry.id !== item?.id && !excludedParents.has(entry.id));
+  const hasChildren = item ? items.some((entry) => entry.parentId === item.id) : false;
+  const availableParents = items.filter((entry) =>
+    entry.id !== item?.id &&
+    !excludedParents.has(entry.id) &&
+    (!entry.parentId || entry.id === item?.parentId),
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,8 +64,12 @@ export default function MenuForm({
       setError("Use lowercase letters, numbers, and hyphens in the URL segment.");
       return;
     }
+    if (parentId && hasChildren) {
+      setError("This parent already has child menus. Move or delete its children before making it a submenu.");
+      return;
+    }
     if (parentId && !availableParents.some((entry) => entry.id === parentId)) {
-      setError("Choose a valid parent menu.");
+      setError("Choose a valid parent menu. Flyers are assigned to child menus under a parent.");
       return;
     }
     if (!parentId && reservedSlugs.has(cleanSlug) && item?.slug !== cleanSlug) {
@@ -117,13 +114,14 @@ export default function MenuForm({
 
   return (
     <form onSubmit={submit} className="h-fit rounded-2xl bg-white p-6 text-neutral-900 shadow-xl">
-      <h2 className="font-serif text-2xl font-bold">{item ? "Edit item" : "Add navigation item"}</h2>
-      <p className="mt-2 text-sm text-neutral-600">Choose a parent to create a submenu. Leave it unselected to create a main menu.</p>
+      <h2 className="font-serif text-2xl font-bold">{item ? "Edit menu" : parentId ? "Add child / sub menu" : "Add parent menu"}</h2>
+      <p className="mt-2 text-sm text-neutral-600">Create a parent menu first, then add as many child menus as you need under it. Flyers are assigned later in Flyer Management.</p>
       <label htmlFor="nav-parent" className="mt-6 block text-sm font-bold">Parent Menu</label>
-      <select id="nav-parent" value={parentId} onChange={(event) => setParentId(event.target.value)} className={fieldClass}>
-        <option value="">No Parent — Main Menu</option>
-        {availableParents.map((entry) => <option key={entry.id} value={entry.id}>{hierarchyLabel(entry, items)} — {entry.href}</option>)}
+      <select id="nav-parent" value={parentId} onChange={(event) => setParentId(event.target.value)} disabled={hasChildren} className={fieldClass}>
+        <option value="">No Parent — Parent / Main Menu</option>
+        {availableParents.map((entry) => <option key={entry.id} value={entry.id}>{entry.title} — {entry.href}</option>)}
       </select>
+      {hasChildren && <p className="mt-2 text-sm text-neutral-600">This menu has children, so it stays a parent menu.</p>}
       <label htmlFor="nav-label" className="mt-5 block text-sm font-bold">Display name</label>
       <input id="nav-label" value={title} onChange={(event) => {
         const nextTitle = event.target.value;
