@@ -53,7 +53,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50">
       <div className="hidden bg-brand-dark text-xs text-white/90 md:block">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2">
+        <div className="site-container mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2">
           <span>{SITE.address}</span>
           <span className="flex gap-6">
             <a href={`mailto:${SITE.email}`} className="hover:text-white">{SITE.email}</a>
@@ -63,7 +63,7 @@ export default function Header() {
       </div>
 
       <div className={`bg-white/95 backdrop-blur transition-shadow ${scrolled ? "shadow-[0_4px_20px_rgba(0,0,0,.12)]" : "border-b border-neutral-200"}`}>
-        <div className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="site-container mx-auto flex h-[72px] max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
           <Logo />
           <div className="ml-auto flex items-center gap-3">
           <nav aria-label="Main" className="hidden items-center xl:flex">

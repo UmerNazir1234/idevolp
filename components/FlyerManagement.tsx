@@ -74,18 +74,18 @@ export function FlyerButton({ button }: { button: FlyerButtonSettings }) {
   );
 }
 
-export function FlyerCard({ flyer, pageLabel }: { flyer: Flyer; pageLabel: string }) {
+export function FlyerCard({ flyer, pageLabel, polished = false }: { flyer: Flyer; pageLabel: string; polished?: boolean }) {
   return (
-    <article className="min-w-0 overflow-hidden text-white">
+    <article className={`min-w-0 overflow-hidden ${polished ? "rounded-xl border border-neutral-200 bg-white text-neutral-900 shadow-sm" : "text-white"}`}>
       {flyer.image && (
         // The image is kept at its intrinsic aspect ratio.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={flyer.image} alt={flyer.title || `Flyer for ${pageLabel}`} className="block h-auto w-full" />
       )}
       {(flyer.title || flyer.description || flyer.button.enabled) && (
-        <div className="space-y-3 pt-3">
+        <div className={`space-y-3 ${polished ? "p-4 sm:p-5" : "pt-3"}`}>
           {flyer.title && <h3 className="font-serif text-xl font-bold sm:text-2xl">{flyer.title}</h3>}
-          {flyer.description && <p className="whitespace-pre-wrap leading-relaxed text-white/85">{flyer.description}</p>}
+          {flyer.description && <p className={`whitespace-pre-wrap leading-relaxed ${polished ? "text-neutral-700" : "text-white/85"}`}>{flyer.description}</p>}
           <FlyerButton button={flyer.button} />
         </div>
       )}
@@ -93,13 +93,13 @@ export function FlyerCard({ flyer, pageLabel }: { flyer: Flyer; pageLabel: strin
   );
 }
 
-export function FlyerGrid({ flyers, pageLabel }: { flyers: Flyer[]; pageLabel: string }) {
+export function FlyerGrid({ flyers, pageLabel, polished = false }: { flyers: Flyer[]; pageLabel: string; polished?: boolean }) {
   if (!flyers.length) return null;
   return (
     <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
       {flyers.map((flyer) => (
         <div key={flyer.id} className={flyers.length === 1 ? "mx-auto w-full max-w-2xl md:col-span-2" : "min-w-0"}>
-          <FlyerCard flyer={flyer} pageLabel={pageLabel} />
+          <FlyerCard flyer={flyer} pageLabel={pageLabel} polished={polished} />
         </div>
       ))}
     </div>
@@ -288,9 +288,14 @@ export function FlyerSection({ pageId, pageLabel, fullScreen = false }: { pageId
   }, [pageId]);
 
   if (!flyers.length) return null;
+  const polished = pageId === "default-home" && !fullScreen;
   return (
-    <section className={fullScreen ? "min-h-[40vh]" : ""} aria-label={`${pageLabel} flyers`}>
-      <FlyerGrid flyers={flyers} pageLabel={pageLabel} />
+    <section className={`${polished ? "bg-white py-7 sm:py-9" : ""} ${fullScreen ? "min-h-[40vh]" : ""}`} aria-label={`${pageLabel} flyers`}>
+      {polished ? (
+        <div className="site-container"><FlyerGrid flyers={flyers} pageLabel={pageLabel} polished /></div>
+      ) : (
+        <FlyerGrid flyers={flyers} pageLabel={pageLabel} />
+      )}
     </section>
   );
 }

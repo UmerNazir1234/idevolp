@@ -6,5 +6,5 @@ import AboutContactSection from "@/components/AboutContactSection";
 import Footer from "@/components/Footer";
 import { FlyerSection } from "@/components/FlyerManagement";
 export default function Home() {
-  return (<><Header /><main><HeroSlider /><FlyerSection pageId="default-home" pageLabel="Home" /><MissionSection /><VideoSection /><AboutContactSection /></main><Footer /></>);
+  return (<div className="home-page"><Header /><main><HeroSlider /><FlyerSection pageId="default-home" pageLabel="Home" /><MissionSection /><VideoSection /><AboutContactSection /></main><Footer /></div>);
 }

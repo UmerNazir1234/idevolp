@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Logo from "./Logo";
 import { SITE, SOCIALS } from "@/lib/config";
 import {
@@ -22,6 +23,7 @@ function leafItems(item: NavigationItem, items: NavigationItem[]): NavigationIte
 }
 
 export default function Footer() {
+  const isHome = usePathname() === "/";
   const [navigation, setNavigation] = useState<NavigationItem[]>(DEFAULT_NAVIGATION);
 
   useEffect(() => {
@@ -39,11 +41,11 @@ export default function Footer() {
     <footer className="bg-site relative isolate text-white">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#2a0000]/95 to-[#120000]/98" />
       <div className="h-1.5 bg-brand" />
-      <div className="mx-auto grid max-w-[1400px] gap-12 px-6 py-16 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr]">
+      <div className={`site-container mx-auto grid max-w-[1400px] px-6 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] ${isHome ? "gap-9 py-11 sm:gap-10 sm:py-14" : "gap-12 py-16"}`}>
         <div>
           <Logo light />
           <p className="mt-6 max-w-xs text-sm leading-relaxed text-white/70">Connecting youth and adults to sports and education in Baton Rouge since 2014.</p>
-          <div className="mt-6 flex gap-3">
+          <div className={`mt-6 flex gap-3 ${isHome ? "flex-wrap" : ""}`}>
             {SOCIALS.map((s) => (
               <a key={s} href="#" aria-label={s} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 transition hover:border-brand hover:bg-brand">
                 <Image src={`/images/content/${s.toLowerCase()}.png`} alt="" width={24} height={24} className="object-contain" />
@@ -64,7 +66,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-2 px-6 py-5 text-xs text-white/50 sm:flex-row sm:justify-between">
+        <div className={`site-container mx-auto flex max-w-[1400px] flex-col gap-2 px-6 py-5 text-xs sm:flex-row sm:justify-between ${isHome ? "text-white/60" : "text-white/50"}`}>
           <p>© {new Date().getFullYear()} {SITE.name}. All rights reserved.</p>
           <p>Built with Next.js</p>
         </div>

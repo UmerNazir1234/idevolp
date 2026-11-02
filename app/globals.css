@@ -1,6 +1,51 @@
-@tailwind base; @tailwind components; @tailwind utilities;
-/* Background image is defined ONCE here. Replace /public/images/background/background.webp */
-:root { --site-bg: url("/images/background/background.webp"); }
-.bg-site { background-image: var(--site-bg); background-size: cover; background-position: center; }
-body { background: #7a7a7a; color: #fff; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --site-bg: url("/images/background/background.webp");
+}
+
+.bg-site {
+  background-image: var(--site-bg);
+  background-size: cover;
+  background-position: center;
+}
+
+body {
+  background: #7a7a7a;
+  color: #fff;
+}
+
+.home-page {
+  min-height: 100vh;
+  background: #fff;
+  color: #242424;
+  -webkit-font-smoothing: antialiased;
+}
+
+.home-page .site-container {
+  width: min(1200px, calc(100% - 48px));
+  max-width: none;
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+.home-page .bg-page {
+  background-color: #f6f5f3;
+}
+
+@media (max-width: 640px) {
+  .home-page .site-container {
+    width: calc(100% - 32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

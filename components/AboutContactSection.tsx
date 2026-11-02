@@ -2,18 +2,20 @@ import SectionHeading from "./SectionHeading";
 import { ABOUT, SITE } from "@/lib/config";
 export default function AboutContactSection() {
   return (
-    <section className="grid gap-12 bg-page px-4 pb-32 pt-10 sm:px-3 md:grid-cols-[1.6fr_1fr]">
-      <div>
+    <section className="bg-white py-9 sm:py-12">
+      <div className="site-container grid gap-6 md:grid-cols-[1.6fr_1fr]">
+      <div className="min-w-0 rounded-xl border border-neutral-200 bg-page p-5 sm:p-7">
         <SectionHeading>About Us</SectionHeading>
-        <p className="mt-10 px-1 text-justify text-[17px] leading-[1.85] sm:px-3">{ABOUT}</p>
+        <p className="mt-5 text-base leading-7 text-neutral-700 sm:text-[17px] sm:leading-8">{ABOUT}</p>
       </div>
-      <div>
+      <div className="min-w-0 rounded-xl border border-neutral-200 bg-page p-5 sm:p-7">
         <SectionHeading>Contact Us</SectionHeading>
-        <address className="mt-10 space-y-6 text-[17px] not-italic">
+        <address className="mt-5 space-y-4 break-words text-base leading-7 not-italic text-neutral-700 sm:text-[17px]">
           <p>{SITE.city}</p>
-          <p><a href={`mailto:${SITE.email}`} className="hover:underline">{SITE.email}</a></p>
-          <p>Tel:<a href={`tel:${SITE.phone.replace(/\./g, "")}`} className="hover:underline">{SITE.phone}</a></p>
+          <p><a href={`mailto:${SITE.email}`} className="font-medium text-brand hover:underline">{SITE.email}</a></p>
+          <p>Tel: <a href={`tel:${SITE.phone.replace(/\./g, "")}`} className="font-medium text-brand hover:underline">{SITE.phone}</a></p>
         </address>
+      </div>
       </div>
     </section>
   );
