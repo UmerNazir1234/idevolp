@@ -62,7 +62,7 @@ export default function Footer() {
             <p><a href={`mailto:${SITE.email}`} className={a}>{SITE.email}</a></p>
             <p><a href={`tel:${SITE.phone.replace(/\./g, "")}`} className={a}>{SITE.phone}</a></p>
           </address>
-          {dayPass && <Link href={dayPass.href} className="mt-6 inline-block rounded-full bg-brand px-6 py-3 text-sm font-bold uppercase tracking-wide transition hover:bg-white hover:text-brand">Get a Day Pass</Link>}
+          {/* {dayPass && <Link href={dayPass.href} className="mt-6 inline-block rounded-full bg-brand px-6 py-3 text-sm font-bold uppercase tracking-wide transition hover:bg-white hover:text-brand">Get a Day Pass</Link>} */}
         </div>
       </div>
       <div className="border-t border-white/10">
