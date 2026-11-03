@@ -109,7 +109,7 @@ export type DemoUser = {
 };
 
 const SESSION_KEY = "ideveloped-demo-session";
-const NAV_KEY = "ideveloped-demo-navigation";
+const NAV_KEY = "ideveloped-demo-navigation-v2";
 const FLYERS_KEY = "ideveloped-demo-flyers";
 const PROFILE_KEY = "ideveloped-demo-profile";
 const PASSWORD_KEY = "ideveloped-demo-password";
